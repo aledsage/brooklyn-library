@@ -113,9 +113,9 @@ public class AbstractGeoDnsServiceTest extends BrooklynAppUnitTestSupport {
         northChildWithLocation = newSshMachineLocation("North child", "localhost", NORTH_IP, northParent, NORTH_LATITUDE, NORTH_LONGITUDE);
         ((BasicLocationRegistry) mgmt.getLocationRegistry()).registerResolver(new LocationResolver() {
             @Override
-            public Location newLocationFromString(Map locationFlags, String spec, LocationRegistry registry) {
+            public LocationSpec<?> newLocationSpecFromString(String spec, Map<?,?> locationFlags, LocationRegistry registry) {
                 if (!spec.equals("test:north")) throw new IllegalStateException("unsupported");
-                return northChildWithLocation;
+                return newSshMachineLocationSpec("North child", "localhost", NORTH_IP, northParent, NORTH_LATITUDE, NORTH_LONGITUDE);
             }
             @Override
             public void init(ManagementContext managementContext) {
@@ -128,12 +128,12 @@ public class AbstractGeoDnsServiceTest extends BrooklynAppUnitTestSupport {
             public boolean accepts(String spec, LocationRegistry registry) {
                 return spec.startsWith(getPrefix());
             }
+            @Override
+            public boolean isEnabled() {
+                return true;
+            }
         });
 
-        Locations.manage(westParent, mgmt);
-        Locations.manage(eastParent, mgmt);
-        Locations.manage(northParent, mgmt);
-        
         fabric = app.createAndManageChild(EntitySpec.create(DynamicRegionsFabric.class)
             .configure(DynamicFabric.MEMBER_SPEC, EntitySpec.create(TestEntity.class)));
 
@@ -159,13 +159,17 @@ public class AbstractGeoDnsServiceTest extends BrooklynAppUnitTestSupport {
     }
     
     private Location newSshMachineLocation(String name, String hostname, String address, Location parent, double lat, double lon) {
-        return mgmt.getLocationManager().createLocation(LocationSpec.create(SshMachineLocation.class)
+        return mgmt.getLocationManager().createLocation(newSshMachineLocationSpec(name, hostname, address, parent, lat, lon));
+    }
+    
+    private LocationSpec<SshMachineLocation> newSshMachineLocationSpec(String name, String hostname, String address, Location parent, double lat, double lon) {
+        return LocationSpec.create(SshMachineLocation.class)
                 .parent(parent)
                 .displayName(name)
                 .configure("hostname", hostname)
                 .configure("address", address)
                 .configure("latitude", lat)
-                .configure("longitude", lon));
+                .configure("longitude", lon);
     }
     
     @Test
