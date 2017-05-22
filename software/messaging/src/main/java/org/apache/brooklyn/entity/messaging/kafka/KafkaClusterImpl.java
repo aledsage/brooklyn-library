@@ -104,11 +104,6 @@ public class KafkaClusterImpl extends AbstractEntity implements KafkaCluster {
 
     @Override
     public void start(Collection<? extends Location> locations) {
-        if (isLegacyConstruction()) {
-            // TODO should no longer be needed?
-            init();
-        }
-
         locations = MutableList.copyOf(Locations.getLocationsCheckingAncestors(locations, this));
 
         Iterables.getOnlyElement(locations); // Assert just one

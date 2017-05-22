@@ -172,10 +172,6 @@ public class ControlledDynamicWebAppClusterImpl extends DynamicGroupImpl impleme
         ServiceStateLogic.setExpectedState(this, Lifecycle.STARTING);
 
         try {
-            if (isLegacyConstruction()) {
-                init();
-            }
-
             locations = Locations.getLocationsCheckingAncestors(locations, this);
             // store inherited locations
             addLocations(locations);

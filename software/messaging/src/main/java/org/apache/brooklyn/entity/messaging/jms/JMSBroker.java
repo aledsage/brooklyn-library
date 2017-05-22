@@ -21,16 +21,37 @@ package org.apache.brooklyn.entity.messaging.jms;
 import java.util.Collection;
 import java.util.Map;
 
+import org.apache.brooklyn.config.ConfigKey;
+import org.apache.brooklyn.core.config.ConfigKeys;
 import org.apache.brooklyn.entity.messaging.MessageBroker;
 import org.apache.brooklyn.entity.messaging.Queue;
 import org.apache.brooklyn.entity.messaging.Topic;
 import org.apache.brooklyn.entity.software.base.SoftwareProcess;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.reflect.TypeToken;
 
 public interface JMSBroker<Q extends JMSDestination & Queue, T extends JMSDestination & Topic> extends SoftwareProcess, MessageBroker {
-    
-    @VisibleForTesting
+
+    @SuppressWarnings("serial")
+    ConfigKey<Collection<String>> QUEUES = ConfigKeys.newConfigKey(
+            new TypeToken<Collection<String>>() {},
+            "queues",
+            "",
+            ImmutableList.<String>of());
+
+    @SuppressWarnings("serial")
+    ConfigKey<Collection<String>> TOPICS = ConfigKeys.newConfigKey(
+            new TypeToken<Collection<String>>() {},
+            "topics",
+            "",
+            ImmutableList.<String>of());
+
+    ConfigKey<String> QUEUE = ConfigKeys.newStringConfigKey("queue", "[DEPRECATED; Use queues]");
+
+    ConfigKey<String> TOPIC = ConfigKeys.newStringConfigKey("topic", "[DEPRECATED; Use topics]");
+
     public Collection<String> getQueueNames();
     
     @VisibleForTesting

@@ -18,29 +18,25 @@
  */
 package org.apache.brooklyn.entity.messaging.jms;
 
-import static org.apache.brooklyn.util.JavaGroovyEquivalents.groovyTruth;
-
 import java.util.Collection;
 import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.brooklyn.core.entity.lifecycle.Lifecycle;
 import org.apache.brooklyn.entity.messaging.Queue;
 import org.apache.brooklyn.entity.messaging.Topic;
 import org.apache.brooklyn.entity.software.base.SoftwareProcessImpl;
+import org.apache.brooklyn.util.collections.MutableList;
 import org.apache.brooklyn.util.collections.MutableMap;
 import org.apache.brooklyn.util.time.Duration;
 import org.apache.brooklyn.util.time.Time;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public abstract class JMSBrokerImpl<Q extends JMSDestination & Queue, T extends JMSDestination & Topic> extends SoftwareProcessImpl implements JMSBroker<Q,T> {
     private static final Logger log = LoggerFactory.getLogger(JMSBroker.class);
     
-    Collection<String> queueNames;
-    Collection<String> topicNames;
     Map<String, Q> queues = Maps.newLinkedHashMap();
     Map<String, T> topics = Maps.newLinkedHashMap();
 
@@ -48,26 +44,33 @@ public abstract class JMSBrokerImpl<Q extends JMSDestination & Queue, T extends 
     }
 
     @Override
-    public JMSBrokerImpl configure(Map properties) {
-        if (queueNames==null) queueNames = Lists.newArrayList();
-        if (groovyTruth(properties.get("queue"))) queueNames.add((String) properties.remove("queue"));
-        if (groovyTruth(properties.get("queues"))) queueNames.addAll((Collection<String>) properties.remove("queues"));
-
-        if (topicNames==null) topicNames = Lists.newArrayList();
-        if (groovyTruth(properties.get("topic"))) topicNames.add((String) properties.remove("topic"));
-        if (groovyTruth(properties.get("topics"))) topicNames.addAll((Collection<String>) properties.remove("topics"));
+    public void init() {
+        super.init();
         
-        return (JMSBrokerImpl) super.configure(properties);
+        if (config().get(QUEUE) != null) {
+            log.warn("DEPRECATED use of config 'queue'; instead use 'queues' in "+this);
+            String queueName = config().get(QUEUE);
+            Collection<String> queueNames = config().get(QUEUES);
+            config().set(QUEUES, MutableList.<String>builder().addAll(queueNames).add(queueName).build());
+            config().set(QUEUE, null);
+        }
+        if (config().get(TOPIC) != null) {
+            log.warn("DEPRECATED use of config 'topic'; instead use 'topics' in "+this);
+            String topicName = config().get(TOPIC);
+            Collection<String> topicNames = config().get(TOPICS);
+            config().set(TOPICS, MutableList.<String>builder().addAll(topicNames).add(topicName).build());
+            config().set(TOPIC, null);
+        }
     }
-
+    
     @Override
     public Collection<String> getQueueNames() {
-        return queueNames;
+        return config().get(QUEUES);
     }
     
     @Override
     public Collection<String> getTopicNames() {
-        return topicNames;
+        return config().get(TOPICS);
     }
 
     @Override
@@ -93,10 +96,10 @@ public abstract class JMSBrokerImpl<Q extends JMSDestination & Queue, T extends 
         // stupid to do this here, but there appears to be a race where sometimes the
         // broker throws a BrokerStopped exception, even though the sensor indicates it is up
         Time.sleep(Duration.FIVE_SECONDS);
-        for (String name : queueNames) {
+        for (String name : getQueueNames()) {
             addQueue(name);
         }
-        for (String name : topicNames) {
+        for (String name : getTopicNames()) {
             addTopic(name);
         }
     }
