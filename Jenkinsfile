@@ -45,6 +45,8 @@ node(label: 'ubuntu') {
                     // Conditional stage to deploy artifacts, when not building a PR
                     if (env.CHANGE_ID == null) {
                         stage('Deploy artifacts') {
+                            sh 'env'
+                            sh 'ls -la /var/maven'
                             sh 'mvn deploy -DskipTests -Duser.home=/var/maven -Duser.name=jenkins'
                         }
                     }
