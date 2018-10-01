@@ -47,6 +47,12 @@ node(label: 'ubuntu') {
                         stage('Deploy artifacts') {
                             sh 'env'
                             sh 'ls -la /var/maven'
+                            sh 'ls -latr /var/maven/.m2'
+                            sh 'ls -latr /home/jenkins/jenkins-slave/workspace/brooklyn-master-build-docker-pipeline-tmp-aledsage'
+                            sh 'ls -latr /usr/build'
+                            sh 'pwd'
+                            sh 'find /usr/build -name "*.jar"'
+                            sh 'find /home/jenkins/jenkins-slave/workspace/brooklyn-master-build-docker-pipeline-tmp-aledsage -name "*.jar"'
                             sh 'mvn deploy -DskipTests -Duser.home=/var/maven -Duser.name=jenkins'
                         }
                     }
